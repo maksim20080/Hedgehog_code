@@ -244,9 +244,8 @@ PLAN: (specific steps for the next year: courses, projects, internships)"""
 
 # ======================= ПОИСК ВАКАНСИЙ (ТОЛЬКО HH.RU - БЫСТРО) =======================
 def search_hh(skills: str, interests: str) -> List[Dict]:
-    """Умный поиск вакансий"""
+    """Умный и устойчивый поиск вакансий"""
 
-    # Объединяем интересы и навыки
     query = f"{interests} {skills}".replace(",", " ")
 
     url = "https://api.hh.ru/vacancies"
@@ -262,20 +261,15 @@ def search_hh(skills: str, interests: str) -> List[Dict]:
         resp.raise_for_status()
         data = resp.json()
 
-        vacancies = []
+        all_vacancies = []
+        filtered = []
 
-        # Ключевые слова для ФИЛЬТРА (оставляем только нужное)
-        good_keywords = [
-            "дизайн", "designer", "ui", "ux", "figma",
-            "графический", "web", "frontend", "illustrator"
-        ]
+        # ключевые слова по интересам
+        keywords = interests.lower().split()
 
         for item in data.get("items", []):
-            title = item.get("name", "").lower()
-
-            # фильтр по интересам
-            if not any(word in title for word in good_keywords):
-                continue
+            title = item.get("name", "")
+            title_lower = title.lower()
 
             salary = item.get("salary")
             salary_text = None
@@ -288,15 +282,26 @@ def search_hh(skills: str, interests: str) -> List[Dict]:
                 elif salary.get("to"):
                     salary_text = f"до {salary['to']} {salary.get('currency', '')}"
 
-            vacancies.append({
-                "title": item.get("name", "Без названия"),
+            job = {
+                "title": title,
                 "company": item.get("employer", {}).get("name", "Не указана"),
                 "link": item.get("alternate_url", "#"),
                 "salary": salary_text,
                 "source": "hh.ru"
-            })
+            }
 
-        return vacancies[:5]
+            all_vacancies.append(job)
+
+            # мягкая фильтрация (НЕ жесткая)
+            if any(word in title_lower for word in keywords):
+                filtered.append(job)
+
+        # если нашли релевантные — показываем их
+        if filtered:
+            return filtered[:5]
+
+        # если нет — показываем просто первые вакансии
+        return all_vacancies[:5]
 
     except Exception as e:
         logger.error(f"HH search error: {e}")
