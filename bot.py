@@ -15,8 +15,8 @@ from telegram.error import Forbidden
 from huggingface_hub import InferenceClient
 
 # ======================= КОНФИГУРАЦИЯ =======================
-TELEGRAM_TOKEN = "8711792105:AAFu1yBMbCp2eyv4a5kJU58Ug6r5w7XtHnU"
-HF_API_KEY = "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"
+TELEGRAM_TOKEN = ""
+HF_API_KEY = ""
 
 client = InferenceClient(api_key=HF_API_KEY)
 MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
