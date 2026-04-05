@@ -244,15 +244,15 @@ PLAN: (specific steps for the next year: courses, projects, internships)"""
 
 # ======================= ПОИСК ВАКАНСИЙ (ТОЛЬКО HH.RU - БЫСТРО) =======================
 def search_hh(skills: str, interests: str) -> List[Dict]:
-    """Исправленный поиск вакансий на hh.ru"""
+    """Умный поиск вакансий"""
 
-    # Берём первый навык (самый точный)
-    query = skills.split(",")[0].strip()
+    # Объединяем интересы и навыки
+    query = f"{interests} {skills}".replace(",", " ")
 
     url = "https://api.hh.ru/vacancies"
     params = {
         "text": query,
-        "per_page": 10,
+        "per_page": 20,
         "experience": "noExperience",
         "order_by": "publication_time"
     }
@@ -264,7 +264,19 @@ def search_hh(skills: str, interests: str) -> List[Dict]:
 
         vacancies = []
 
+        # Ключевые слова для ФИЛЬТРА (оставляем только нужное)
+        good_keywords = [
+            "дизайн", "designer", "ui", "ux", "figma",
+            "графический", "web", "frontend", "illustrator"
+        ]
+
         for item in data.get("items", []):
+            title = item.get("name", "").lower()
+
+            # фильтр по интересам
+            if not any(word in title for word in good_keywords):
+                continue
+
             salary = item.get("salary")
             salary_text = None
 
